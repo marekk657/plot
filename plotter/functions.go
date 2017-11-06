@@ -13,8 +13,9 @@ import (
 // Function implements the Plotter interface,
 // drawing a line for the given function.
 type Function struct {
-	F       func(float64) float64
-	Samples int
+	F        func(float64) float64
+	Min, Max float64
+	Samples  int
 	draw.LineStyle
 }
 
@@ -33,10 +34,15 @@ func NewFunction(f func(float64) float64) *Function {
 func (f *Function) Plot(c draw.Canvas, p *plot.Plot) {
 	trX, trY := p.Transforms(&c)
 
-	d := (p.X.Max - p.X.Min) / float64(f.Samples-1)
+	min, max := f.Min, f.Max
+	if min == 0 && max == 0 {
+		min = p.X.Min
+		max = p.X.Max
+	}
+	d := (max - min) / float64(f.Samples-1)
 	line := make([]vg.Point, f.Samples)
 	for i := range line {
-		x := p.X.Min + float64(i)*d
+		x := min + float64(i)*d
 		line[i].X = trX(x)
 		line[i].Y = trY(f.F(x))
 	}
